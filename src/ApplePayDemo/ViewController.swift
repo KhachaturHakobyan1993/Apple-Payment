@@ -27,18 +27,36 @@ final class ViewController: UIViewController {
 	}
 	
 	@objc private func applePayButtonTapped() {
-		self.applePayService.showApplePayViewControllerIfNeeded(canMakePayments: { (canMakePayment) in
-			print("canMakePayment = \(canMakePayment)")
-		},toViewController: self,
-		  updateRequest: { (request) in
+		self.applePayService.showApplePayViewControllerIfNeeded(canMakePayments: { (canMake) in
+			print("canMakePayment = \(canMake)")
+		}, updateRequest: { (request) in
 			print("updateRequest")
 		}, updateShippingMethods: { () -> [PKShippingMethod] in
 			print("updateShippingMethods")
 			return []
-		}) { (method) -> [PKPaymentSummaryItem] in
-			
-			print("PaymentSummaryItem")
+		}, updateSummaryItems: { (method) -> [PKPaymentSummaryItem] in
+			print("updateSummaryItems")
 			return [.init(label: "Total", amount: 340)]
+		}, authorizationViewControllerHandler: { (pkViewController) in
+			guard let pkViewController = pkViewController else { return }
+			
+			self.show(pkViewController, sender: nil)
+			print("authorizationViewControllerHandler")
+		},authorizedPayment: { (payment) in
+			print("authorizedPayment")
+		}, generatedSTPToken: { (token, error) in
+			print(token ?? "None Stripe Token")
+			print(error ?? "None Error")
+		}, completionResult: { result in
+			switch result.status {
+			case .success:
+				print("Success Completion")
+			default:
+				print("Failure Completion")
+			}
+		}) { (vc) in
+			print("finished")
+			self.dismiss(animated: true, completion: nil)
 		}
 	}
 }
